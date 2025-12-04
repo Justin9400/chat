@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
+  alpha,
   AppBar,
   Avatar,
   Box,
@@ -17,6 +18,7 @@ import {
   Grid,
   IconButton,
   InputLabel,
+  LinearProgress,
   MenuItem,
   Paper,
   Select,
@@ -25,6 +27,7 @@ import {
   TextField,
   ThemeProvider,
   Toolbar,
+  Tooltip,
   Typography,
   createTheme,
 } from "@mui/material";
@@ -95,18 +98,41 @@ function App() {
       createTheme({
         palette: {
           mode,
-          primary: { main: mode === "dark" ? "#8bc8ff" : "#1a73e8" },
+          primary: { main: mode === "dark" ? "#8bc8ff" : "#0b6bcb" },
+          secondary: { main: mode === "dark" ? "#c792ea" : "#7c3aed" },
           background: {
-            default: mode === "dark" ? "#0b1622" : "#f7f9fc",
-            paper: mode === "dark" ? "#0f1c2b" : "#ffffff",
+            default: mode === "dark" ? "#070c14" : "#f5f7fb",
+            paper: mode === "dark" ? alpha("#0f1c2b", 0.9) : "#ffffff",
           },
         },
-        shape: { borderRadius: 14 },
+        typography: {
+          fontFamily: '"Inter", "Roboto", system-ui, -apple-system, sans-serif',
+          h4: { fontWeight: 800, letterSpacing: -0.3 },
+        },
+        shape: { borderRadius: 16 },
         components: {
           MuiPaper: {
             styleOverrides: {
               root: {
-                border: mode === "dark" ? "1px solid rgba(255,255,255,0.06)" : "1px solid rgba(0,0,0,0.06)",
+                border: mode === "dark" ? "1px solid rgba(255,255,255,0.07)" : "1px solid rgba(0,0,0,0.06)",
+                backdropFilter: "blur(12px)",
+              },
+            },
+          },
+          MuiButton: {
+            styleOverrides: {
+              root: {
+                textTransform: "none",
+                fontWeight: 700,
+                letterSpacing: 0,
+              },
+            },
+          },
+          MuiAppBar: {
+            styleOverrides: {
+              root: {
+                backdropFilter: "blur(14px)",
+                backgroundImage: "linear-gradient(120deg, rgba(139,200,255,0.08), rgba(199,146,234,0.08))",
               },
             },
           },
@@ -197,28 +223,48 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
+      <Box
+        sx={{
+          minHeight: "100vh",
+          bgcolor: "background.default",
+          backgroundImage:
+            mode === "dark"
+              ? "radial-gradient(circle at 10% 20%, rgba(139,200,255,0.08), transparent 25%), radial-gradient(circle at 80% 0%, rgba(199,146,234,0.12), transparent 35%)"
+              : "radial-gradient(circle at 10% 20%, rgba(16, 121, 255, 0.08), transparent 25%), radial-gradient(circle at 80% 0%, rgba(124, 58, 237, 0.12), transparent 35%)",
+          pb: 6,
+        }}
+      >
         <AppBar position="sticky" elevation={0} color="transparent" sx={{ borderBottom: 1, borderColor: "divider" }}>
-          <Toolbar sx={{ gap: 2, justifyContent: "space-between" }}>
+          <Toolbar sx={{ gap: 2, justifyContent: "space-between", py: 1 }}>
             <Stack direction="row" spacing={2} alignItems="center">
               <Paper
                 elevation={0}
-                sx={{ width: 36, height: 36, display: "grid", placeItems: "center", bgcolor: "primary.main", color: "background.paper" }}
+                sx={{
+                  width: 44,
+                  height: 44,
+                  display: "grid",
+                  placeItems: "center",
+                  bgcolor: alpha(theme.palette.primary.main, 0.14),
+                  color: "primary.main",
+                  borderColor: alpha(theme.palette.primary.main, 0.2),
+                  fontWeight: 800,
+                  fontSize: 18,
+                }}
               >
-                ⚡
+                AI
               </Paper>
               <Box>
                 <Typography variant="overline" color="text.secondary" sx={{ letterSpacing: 1 }}>
-                  AI Studio
+                  Nova Studio
                 </Typography>
-                <Typography variant="h6" fontWeight={700}>
-                  Chatboard
+                <Typography variant="h6" fontWeight={800}>
+                  Conversational Lab
                 </Typography>
               </Box>
             </Stack>
 
-            <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap" justifyContent="flex-end">
-              <FormControl size="small" sx={{ minWidth: 240 }}>
+            <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" justifyContent="flex-end">
+              <FormControl size="small" sx={{ minWidth: 230 }}>
                 <InputLabel id="model-select-label">Model</InputLabel>
                 <Select
                   labelId="model-select-label"
@@ -236,11 +282,12 @@ function App() {
                       accent: true,
                     });
                   }}
+                  MenuProps={{ PaperProps: { elevation: 0 } }}
                 >
                   {models.map((model) => (
                     <MenuItem key={model.id} value={model.id}>
-                      <Stack spacing={0.5}>
-                        <Typography fontWeight={600}>{model.label}</Typography>
+                      <Stack spacing={0.25}>
+                        <Typography fontWeight={700}>{model.label}</Typography>
                         <Typography variant="body2" color="text.secondary">
                           {model.description}
                         </Typography>
@@ -250,143 +297,255 @@ function App() {
                 </Select>
               </FormControl>
 
-              <IconButton
-                color="inherit"
-                onClick={() => setMode((prev) => (prev === "dark" ? "light" : "dark"))}
-                aria-label="Toggle theme"
-              >
-                {mode === "dark" ? <Brightness7Icon /> : <Brightness4Icon />}
-              </IconButton>
+              <Tooltip title={mode === "dark" ? "Switch to light" : "Switch to dark"}>
+                <IconButton
+                  color="inherit"
+                  onClick={() => setMode((prev) => (prev === "dark" ? "light" : "dark"))}
+                  aria-label="Toggle theme"
+                  sx={{ border: 1, borderColor: "divider" }}
+                >
+                  {mode === "dark" ? <Brightness7Icon /> : <Brightness4Icon />}
+                </IconButton>
+              </Tooltip>
 
               <Button
-                variant="outlined"
-                color="inherit"
+                variant="contained"
+                color="primary"
                 startIcon={<SettingsIcon />}
                 onClick={() => setIsSettingsOpen(true)}
                 aria-label="Open settings"
               >
-                Settings
+                Session controls
               </Button>
             </Stack>
           </Toolbar>
         </AppBar>
 
-        <Container maxWidth="md" sx={{ py: 4 }}>
+        <Container maxWidth="lg" sx={{ py: 4 }}>
           <Stack spacing={3}>
-            <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
-              <Box>
-                <Typography variant="overline" color="text.secondary">
-                  Live session
-                </Typography>
-                <Typography variant="h4" fontWeight={700} gutterBottom>
-                  Ask anything and iterate
-                </Typography>
-                <Typography color="text.secondary">
-                  Switch between models, adjust preferences, and explore example prompts to jump-start your conversation.
-                </Typography>
-              </Box>
-              <Chip
-                color={status.accent ? "primary" : "default"}
-                label={status.text}
-                variant={status.accent ? "filled" : "outlined"}
-              />
-            </Stack>
-
-            {showExamples && (
-              <Paper variant="outlined" sx={{ p: 2 }}>
-                <Grid container spacing={2}>
-                  {examplePrompts.map((example) => (
-                    <Grid key={example.title} item xs={12} sm={6}>
-                      <Card variant="outlined" sx={{ height: "100%" }}>
-                        <CardActionArea onClick={() => setInput(example.text)} sx={{ height: "100%" }}>
-                          <CardContent>
-                            <Typography fontWeight={700}>{example.title}</Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              {example.text}
-                            </Typography>
-                          </CardContent>
-                        </CardActionArea>
-                      </Card>
-                    </Grid>
-                  ))}
-                </Grid>
-              </Paper>
-            )}
-
             <Paper
               variant="outlined"
-              sx={{ p: 2, minHeight: 360, maxHeight: "65vh", overflowY: "auto" }}
-              ref={chatLogRef}
+              sx={{
+                p: { xs: 2.5, sm: 3 },
+                display: "flex",
+                flexDirection: { xs: "column", md: "row" },
+                alignItems: { xs: "flex-start", md: "center" },
+                justifyContent: "space-between",
+                gap: 2,
+                backgroundImage:
+                  mode === "dark"
+                    ? "linear-gradient(135deg, rgba(139,200,255,0.1), rgba(199,146,234,0.08))"
+                    : "linear-gradient(135deg, rgba(16, 121, 255, 0.08), rgba(124, 58, 237, 0.07))",
+              }}
             >
-              <Stack spacing={2}>
-                {messages.map((message) => {
-                  const isUser = message.role === "user";
-                  return (
-                    <Stack
-                      key={message.id}
-                      direction="row"
-                      spacing={2}
-                      justifyContent={isUser ? "flex-end" : "flex-start"}
-                      alignItems="flex-start"
-                    >
-                      {!isUser && (
-                        <Avatar sx={{ bgcolor: "primary.main", color: "background.paper" }}>AI</Avatar>
-                      )}
-                      <Paper
-                        elevation={0}
-                        sx={{
-                          p: 2,
-                          maxWidth: "70%",
-                          bgcolor: isUser ? "primary.main" : "background.paper",
-                          color: isUser ? "grey.900" : "text.primary",
-                        }}
-                      >
-                        <Typography sx={{ whiteSpace: "pre-wrap" }}>{message.text}</Typography>
-                        {showTimestamps && (
-                          <Typography variant="caption" color="text.secondary" display="block" mt={1}>
-                            {renderMeta(message.role, message.timestamp)}
+              <Box>
+                <Stack direction="row" spacing={1} alignItems="center" mb={1}>
+                  <Chip label="Live" color="primary" size="small" />
+                  <Chip label={selectedModelLabel} variant="outlined" color="secondary" size="small" />
+                </Stack>
+                <Typography variant="h4" gutterBottom>
+                  Ask anything, iterate faster
+                </Typography>
+                <Typography color="text.secondary" maxWidth={620}>
+                  Switch models, tweak tone, and jump into curated prompts inspired by modern AI chat surfaces.
+                  Responsive layout keeps focus on your conversation.
+                </Typography>
+              </Box>
+              <Stack spacing={1} alignItems={{ xs: "flex-start", md: "flex-end" }}>
+                <Chip
+                  color={status.accent ? "primary" : "default"}
+                  label={status.text}
+                  variant={status.accent ? "filled" : "outlined"}
+                  sx={{ fontWeight: 700 }}
+                />
+                {isSending && <LinearProgress sx={{ width: { xs: "100%", md: 260 } }} />}
+              </Stack>
+            </Paper>
+
+            <Grid container spacing={3} alignItems="stretch">
+              <Grid item xs={12} md={4}>
+                <Stack spacing={2} height="100%">
+                  <Paper variant="outlined" sx={{ p: 2.5, height: "100%" }}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
+                      <Typography fontWeight={700}>Session quick toggles</Typography>
+                      <Tooltip title="Open all preferences">
+                        <IconButton size="small" onClick={() => setIsSettingsOpen(true)} aria-label="Open settings">
+                          <SettingsIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </Stack>
+                    <Stack spacing={1.5}>
+                      <FormControl fullWidth size="small">
+                        <InputLabel id="tone-select-label-inline">Response tone</InputLabel>
+                        <Select
+                          labelId="tone-select-label-inline"
+                          id="tone-select-inline"
+                          value={tone}
+                          label="Response tone"
+                          onChange={(event) => setTone(event.target.value as Tone)}
+                        >
+                          <MenuItem value="Balanced">Balanced</MenuItem>
+                          <MenuItem value="Concise">Concise</MenuItem>
+                          <MenuItem value="Detailed">Detailed</MenuItem>
+                          <MenuItem value="Playful">Playful</MenuItem>
+                        </Select>
+                      </FormControl>
+
+                      <FormControlLabel
+                        control={<Switch checked={showTimestamps} onChange={(event) => setShowTimestamps(event.target.checked)} />}
+                        label="Show timestamps"
+                      />
+                      <FormControlLabel
+                        control={<Switch checked={typingPause} onChange={(event) => setTypingPause(event.target.checked)} />}
+                        label="Typing indicator"
+                      />
+                      <FormControlLabel
+                        control={<Switch checked={mode === "dark"} onChange={() => setMode((prev) => (prev === "dark" ? "light" : "dark"))} />}
+                        label={mode === "dark" ? "Dark mode" : "Light mode"}
+                      />
+                    </Stack>
+                  </Paper>
+
+                  {showExamples && (
+                    <Paper variant="outlined" sx={{ p: 2.5 }}>
+                      <Typography fontWeight={700} gutterBottom>
+                        Quick ideas
+                      </Typography>
+                      <Grid container spacing={1.5}>
+                        {examplePrompts.map((example) => (
+                          <Grid key={example.title} item xs={12} sm={6} md={12}>
+                            <Card
+                              variant="outlined"
+                              sx={{
+                                height: "100%",
+                                borderColor: "divider",
+                                bgcolor: alpha(theme.palette.background.paper, 0.8),
+                              }}
+                            >
+                              <CardActionArea onClick={() => setInput(example.text)} sx={{ height: "100%" }}>
+                                <CardContent>
+                                  <Typography fontWeight={700}>{example.title}</Typography>
+                                  <Typography variant="body2" color="text.secondary">
+                                    {example.text}
+                                  </Typography>
+                                </CardContent>
+                              </CardActionArea>
+                            </Card>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    </Paper>
+                  )}
+                </Stack>
+              </Grid>
+
+              <Grid item xs={12} md={8}>
+                <Stack spacing={2} height="100%">
+                  <Paper
+                    variant="outlined"
+                    sx={{
+                      p: { xs: 2, sm: 2.5 },
+                      minHeight: 420,
+                      maxHeight: "65vh",
+                      overflowY: "auto",
+                      display: "flex",
+                    }}
+                    ref={chatLogRef}
+                  >
+                    <Stack spacing={2} width="100%">
+                      {messages.map((message) => {
+                        const isUser = message.role === "user";
+                        return (
+                          <Stack
+                            key={message.id}
+                            direction="row"
+                            spacing={1.5}
+                            justifyContent={isUser ? "flex-end" : "flex-start"}
+                            alignItems="flex-start"
+                          >
+                            {!isUser && (
+                              <Avatar
+                                sx={{
+                                  bgcolor: alpha(theme.palette.primary.main, 0.18),
+                                  color: "primary.main",
+                                  border: 1,
+                                  borderColor: alpha(theme.palette.primary.main, 0.3),
+                                  fontWeight: 800,
+                                }}
+                              >
+                                AI
+                              </Avatar>
+                            )}
+                            <Paper
+                              elevation={0}
+                              sx={{
+                                p: 2,
+                                maxWidth: "80%",
+                                bgcolor: isUser
+                                  ? alpha(theme.palette.primary.main, mode === "dark" ? 0.25 : 0.15)
+                                  : alpha(theme.palette.background.paper, 0.9),
+                                color: isUser ? theme.palette.getContrastText(theme.palette.primary.main) : "text.primary",
+                                borderColor: isUser ? alpha(theme.palette.primary.main, 0.4) : "divider",
+                              }}
+                            >
+                              <Typography sx={{ whiteSpace: "pre-wrap" }}>{message.text}</Typography>
+                              {showTimestamps && (
+                                <Typography variant="caption" color="text.secondary" display="block" mt={1}>
+                                  {renderMeta(message.role, message.timestamp)}
+                                </Typography>
+                              )}
+                            </Paper>
+                            {isUser && (
+                              <Avatar sx={{ bgcolor: "grey.800", color: "background.paper", fontWeight: 700 }}>You</Avatar>
+                            )}
+                          </Stack>
+                        );
+                      })}
+
+                      {!messages.length && (
+                        <Stack alignItems="center" spacing={1} py={6} color="text.secondary">
+                          <Typography variant="body1" fontWeight={700}>
+                            Your conversation will appear here
                           </Typography>
-                        )}
-                      </Paper>
-                      {isUser && (
-                        <Avatar sx={{ bgcolor: "grey.800", color: "background.paper" }}>You</Avatar>
+                          <Typography variant="body2">
+                            Pick an example or ask your own question to get started.
+                          </Typography>
+                        </Stack>
                       )}
                     </Stack>
-                  );
-                })}
+                  </Paper>
 
-                {!messages.length && (
-                  <Stack alignItems="center" spacing={1} py={4} color="text.secondary">
-                    <Typography variant="body1">Start a conversation to see replies here.</Typography>
-                    <Typography variant="body2">Pick an example prompt or ask your own question.</Typography>
-                  </Stack>
-                )}
-              </Stack>
-            </Paper>
-
-            <Paper component="form" onSubmit={handleSubmit} variant="outlined" sx={{ p: 2 }}>
-              <Stack spacing={2}>
-                <TextField
-                  id="user-input"
-                  label="Message"
-                  placeholder="Send a message..."
-                  multiline
-                  minRows={2}
-                  value={input}
-                  onChange={(event) => setInput(event.target.value)}
-                  disabled={isSending}
-                  fullWidth
-                />
-                <Stack direction="row" spacing={2} justifyContent="flex-end">
-                  <Button variant="text" color="inherit" onClick={handleClear} type="button">
-                    Clear
-                  </Button>
-                  <Button variant="contained" type="submit" disabled={isSending}>
-                    {isSending ? "Thinking" : "Send"}
-                  </Button>
+                  <Paper component="form" onSubmit={handleSubmit} variant="outlined" sx={{ p: { xs: 2, sm: 2.5 } }}>
+                    <Stack spacing={2}>
+                      <TextField
+                        id="user-input"
+                        label="Message"
+                        placeholder="Send a message..."
+                        multiline
+                        minRows={3}
+                        value={input}
+                        onChange={(event) => setInput(event.target.value)}
+                        disabled={isSending}
+                        fullWidth
+                      />
+                      <Stack direction="row" spacing={1.5} justifyContent="space-between" alignItems="center" flexWrap="wrap">
+                        <Typography variant="body2" color="text.secondary">
+                          Press Enter to send, Shift + Enter for a new line.
+                        </Typography>
+                        <Stack direction="row" spacing={1.5}>
+                          <Button variant="text" color="inherit" onClick={handleClear} type="button">
+                            Clear
+                          </Button>
+                          <Button variant="contained" type="submit" disabled={isSending}>
+                            {isSending ? "Thinking" : "Send"}
+                          </Button>
+                        </Stack>
+                      </Stack>
+                    </Stack>
+                  </Paper>
                 </Stack>
-              </Stack>
-            </Paper>
+              </Grid>
+            </Grid>
           </Stack>
         </Container>
 
